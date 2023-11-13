@@ -45,6 +45,54 @@ contract VRFD20 is VRFConsumerBaseV2 {
         emit DiceRolled(requestId, roller);
     }
 
+    function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
+
+        // transform the result to a number between 1 and 20 inclusively
+        uint256 d20Value = (randomWords[0] % 20) + 1;
+
+        //assign the transformed value to the address in the s_results mapping variable
+        s_results[s_rollers[requestId]] = d20Value;
+
+        emit DiceLanded(requestId, d20Value);
+    }
+
+    function house(address player) public view returns (string) {
+        require(s_results[player] != 0, "Dice not rolled");
+
+        require(s_results[player] != ROLL_IN_PROGRESS, "Dice roll in progress");
+
+        return getHouseName(s_results[player]);
+    }
+
+     function getHouseName(uint256 id) private pure returns (string memory) {
+        // array storing the list of house's names
+        string[20] memory houseNames = [
+            "Targaryen",
+            "Lannister",
+            "Stark",
+            "Tyrell",
+            "Baratheon",
+            "Martell",
+            "Tully",
+            "Bolton",
+            "Greyjoy",
+            "Arryn",
+            "Frey",
+            "Mormont",
+            "Tarley",
+            "Dayne",
+            "Umber",
+            "Valeryon",
+            "Manderly",
+            "Clegane",
+            "Glover",
+            "Karstark"
+        ];
+
+        // returns the house name given an index
+        return houseNames[id - 1];
+    }
+
 
     modifier onlyOwner() {
         require(msg.sender == s_owner);
