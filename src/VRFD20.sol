@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.7;
+pragma solidity ^0.8.13;
 
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
@@ -56,7 +56,7 @@ contract VRFD20 is VRFConsumerBaseV2 {
         emit DiceLanded(requestId, d20Value);
     }
 
-    function house(address player) public view returns (string) {
+    function house(address player) public view returns (string memory) {
         require(s_results[player] != 0, "Dice not rolled");
 
         require(s_results[player] != ROLL_IN_PROGRESS, "Dice roll in progress");
