@@ -1,4 +1,13 @@
-## Foundry
+## Testing Sandbox for Chainlink Constellation 2023 Fall Hackathon
+
+Using this repo to test different Chainlink VRF implementations for my hackathon build idea, which revolves around effective use of onchain randomness.
+
+
+
+
+
+
+
 
 **Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
 
