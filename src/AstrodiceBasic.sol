@@ -30,8 +30,10 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
         House house;
     }
 
-    mapping(uint256 => Reading) public readings;
-    mapping(uint256 => address) private requestIdToSender;
+    // Store each reading associated with a tokenId
+    mapping(uint256 => Reading) public tokenIdToReading;
+    // Map each request to the address that made it
+    mapping(uint256 => address) private requestToSender;
 
     event ReadingRequested(uint256 indexed requestId, address indexed requestor);
     event ReadingFulfilled(uint256 indexed requestId, uint256 tokenId);
@@ -40,6 +42,7 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
         COORDINATOR = VRFCoordinatorV2Interface(vrfCoordinator);
         // s_owner = msg.sender;
         s_subscriptionId = subscriptionId;
+        // may put a spot here to make keyHash customizeable, need to do more research
     }
 
     function requestReading(address roller) public returns(uint256 requestId) {
@@ -57,102 +60,104 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
     }
 
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
+        uint256 tokenId = totalSupply() + 1;
 
-        // transform the result to a number between 1 and 12 for planets, signs and houses
-        uint256 planetValue = (randomWords[0] % 12) + 1;
-        uint256 signValue = (randomWords[1] % 12) + 1;
-        uint256 houseValue = (randomWords[2] % 12) + 1;
+        // Create the reading
+        Reading memory newReading = Reading(
+            Sign(randomWords[0] % 12),
+            Planet(randomWords[1] % 12),
+            House(randomWords[2] % 12)
+        );
 
-        Reading memory newReading = Reading(getSignName[signValue], getPlanetName[planetValue], getHouseName[houseValue]);
+        tokenIdToReading[tokenId] = newReading;
+        _safeMint(requestIdToSender[requestId], tokenId);
 
-        // NFT Mint code goes here?
-
-        // emit readingFulfilled(requestId, d20Value);
-        return newReading;
+        emit ReadingFulfilled(requestId, tokenId);
     }
 
-    // Example code 
-    
+    function tokenURI(uint256 tokenId) public view override returns (string memory) {
+        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
 
-    // function house(address player) public view returns (string memory) {
-    //     require(s_results[player] != 0, "Dice not rolled");
+        Reading memory reading = tokenIdToReading[tokenId];
+        // Construct the tokenURI here or return a static URI that points to a metadata server
+        // Metadata server can then construct metadata based on the reading
+        return "https://metadata-server.com/token/" + toString(tokenId);
+    }
 
-    //     require(s_results[player] != ROLL_IN_PROGRESS, "Dice roll in progress");
 
-    //     return getHouseName(s_results[player]);
+
+
+
+
+
+
+
+
+
+
+    // Earlier implementation where I wanted to generate the names on chain. Not sure this makes sense after updates tho...
+    // function getPlanetName(uint256 id) private pure returns (string memory) {
+    //     // array storing the list of planet names
+    //     string[12] memory planetNames = [
+    //         "Sun",
+    //         "Moon",
+    //         "Mercury",
+    //         "Venus",
+    //         "Mars",
+    //         "Jupiter",
+    //         "Saturn",
+    //         "Uranus",
+    //         "Neptune",
+    //         "Pluto",
+    //         "North Node",
+    //         "South Node"
+    //     ];
+
+    //     // returns the house name given an index
+    //     return planetNames[id - 1];
     // }
 
-    // function planet(address player) public view returns (string memory) {
-    //     // Not sure if the below is needed, but it's in the example code
-    //     //require(s_results[player] != ROLL_IN_PROGRESS, "Dice roll in progress");
+    // function getSignName(uint256 id) private pure returns (string memory) {
+    //     // array storing the list of planet names
+    //     string[12] memory signNames = [
+    //         "Aries",
+    //         "Taurus",
+    //         "Gemini",
+    //         "Cancer",
+    //         "Leo",
+    //         "Virgo",
+    //         "Libra",
+    //         "Scorpio",
+    //         "Sagittarius",
+    //         "Capricorn",
+    //         "Aquarius",
+    //         "Pisces"
+    //     ];
 
-    //     return getPlanetName(s_results[player]);
+    //     // returns the house name given an index
+    //     return signNames[id - 1];
     // }
 
-    // Getter functions
+    // function getHouseName(uint256 id) private pure returns (string memory) {
+    //     // array storing the list of planet names
+    //     string[12] memory houseNames = [
+    //         "First House",
+    //         "Second House",
+    //         "Third House",
+    //         "Fourth House",
+    //         "Fifth House",
+    //         "Sixth House",
+    //         "Seventh House",
+    //         "Eighth House",
+    //         "Ninth House",
+    //         "Tenth House",
+    //         "Eleventh House",
+    //         "Twelfth House"
+    //     ];
 
-    function getPlanetName(uint256 id) private pure returns (string memory) {
-        // array storing the list of planet names
-        string[12] memory planetNames = [
-            "Sun",
-            "Moon",
-            "Mercury",
-            "Venus",
-            "Mars",
-            "Jupiter",
-            "Saturn",
-            "Uranus",
-            "Neptune",
-            "Pluto",
-            "North Node",
-            "South Node"
-        ];
-
-        // returns the house name given an index
-        return planetNames[id - 1];
-    }
-
-    function getSignName(uint256 id) private pure returns (string memory) {
-        // array storing the list of planet names
-        string[12] memory signNames = [
-            "Aries",
-            "Taurus",
-            "Gemini",
-            "Cancer",
-            "Leo",
-            "Virgo",
-            "Libra",
-            "Scorpio",
-            "Sagittarius",
-            "Capricorn",
-            "Aquarius",
-            "Pisces"
-        ];
-
-        // returns the house name given an index
-        return signNames[id - 1];
-    }
-
-    function getHouseName(uint256 id) private pure returns (string memory) {
-        // array storing the list of planet names
-        string[12] memory houseNames = [
-            "First House",
-            "Second House",
-            "Third House",
-            "Fourth House",
-            "Fifth House",
-            "Sixth House",
-            "Seventh House",
-            "Eighth House",
-            "Ninth House",
-            "Tenth House",
-            "Eleventh House",
-            "Twelfth House"
-        ];
-
-        // returns the house name given an index
-        return houseNames[id - 1];
-    }
+    //     // returns the house name given an index
+    //     return houseNames[id - 1];
+    // }
 
 
 
