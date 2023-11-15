@@ -19,7 +19,7 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
     VRFCoordinatorV2Interface COORDINATOR;
     address vrfCoordinator = 0x8103B0A8A00be2DDC778e6e7eaa21791Cd364625;
     bytes32 s_keyHash = 0x474e34a077df58807dbe9c96d3c009b23b3c6d0cce433e59bbf5b34f823bc56c;
-    uint32 callbackGasLimit = 40000;
+    uint32 callbackGasLimit = 100000;
     uint16 requestConfirmations = 3;
     uint32 numWords =  3;
 
@@ -55,7 +55,7 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
             numWords
         );
 
-        requestIdToSender[requestId] = msg.sender;
+        requestToSender[requestId] = msg.sender;
         emit ReadingRequested(requestId, msg.sender);
     }
 
@@ -70,7 +70,7 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
         );
 
         tokenIdToReading[tokenId] = newReading;
-        _safeMint(requestIdToSender[requestId], tokenId);
+        _safeMint(requestToSender[requestId], tokenId);
 
         emit ReadingFulfilled(requestId, tokenId);
     }
@@ -83,85 +83,6 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
         // Metadata server can then construct metadata based on the reading
         return "https://metadata-server.com/token/" + toString(tokenId);
     }
-
-
-
-
-
-
-
-
-
-
-
-
-    // Earlier implementation where I wanted to generate the names on chain. Not sure this makes sense after updates tho...
-    // function getPlanetName(uint256 id) private pure returns (string memory) {
-    //     // array storing the list of planet names
-    //     string[12] memory planetNames = [
-    //         "Sun",
-    //         "Moon",
-    //         "Mercury",
-    //         "Venus",
-    //         "Mars",
-    //         "Jupiter",
-    //         "Saturn",
-    //         "Uranus",
-    //         "Neptune",
-    //         "Pluto",
-    //         "North Node",
-    //         "South Node"
-    //     ];
-
-    //     // returns the house name given an index
-    //     return planetNames[id - 1];
-    // }
-
-    // function getSignName(uint256 id) private pure returns (string memory) {
-    //     // array storing the list of planet names
-    //     string[12] memory signNames = [
-    //         "Aries",
-    //         "Taurus",
-    //         "Gemini",
-    //         "Cancer",
-    //         "Leo",
-    //         "Virgo",
-    //         "Libra",
-    //         "Scorpio",
-    //         "Sagittarius",
-    //         "Capricorn",
-    //         "Aquarius",
-    //         "Pisces"
-    //     ];
-
-    //     // returns the house name given an index
-    //     return signNames[id - 1];
-    // }
-
-    // function getHouseName(uint256 id) private pure returns (string memory) {
-    //     // array storing the list of planet names
-    //     string[12] memory houseNames = [
-    //         "First House",
-    //         "Second House",
-    //         "Third House",
-    //         "Fourth House",
-    //         "Fifth House",
-    //         "Sixth House",
-    //         "Seventh House",
-    //         "Eighth House",
-    //         "Ninth House",
-    //         "Tenth House",
-    //         "Eleventh House",
-    //         "Twelfth House"
-    //     ];
-
-    //     // returns the house name given an index
-    //     return houseNames[id - 1];
-    // }
-
-
-
-
 
     modifier onlyOwner() {
         require(msg.sender == s_owner);
