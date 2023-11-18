@@ -4,6 +4,7 @@ pragma solidity ^0.8.13;
 import "@chainlink/contracts/src/v0.8/interfaces/VRFCoordinatorV2Interface.sol";
 import "@chainlink/contracts/src/v0.8/vrf/VRFConsumerBaseV2.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/utils/Strings.sol";
 
 contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
 
@@ -75,14 +76,17 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
         emit ReadingFulfilled(requestId, tokenId);
     }
 
-    function tokenURI(uint256 tokenId) public view override returns (string memory) {
-        require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
+   function tokenURI(uint256 tokenId) public view override returns (string memory) {
+    require(_exists(tokenId), "ERC721Metadata: URI query for nonexistent token");
 
-        Reading memory reading = tokenIdToReading[tokenId];
-        // Construct the tokenURI here or return a static URI that points to a metadata server
-        // Metadata server can then construct metadata based on the reading
-        return "https://metadata-server.com/token/" + toString(tokenId);
-    }
+    // You could construct a base URI and append the tokenId to it
+    string memory baseURI = "https://metadata-server.com/token/";
+    return string(abi.encodePacked(baseURI, toString(tokenId)));
+}
+    // Helper Functions
+    function toString(uint256 value) internal pure returns (string memory) {
+    return Strings.toString(value);
+}   
 
     modifier onlyOwner() {
         require(msg.sender == s_owner);
