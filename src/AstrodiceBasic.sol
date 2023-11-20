@@ -24,6 +24,10 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
     uint16 requestConfirmations = 3;
     uint32 numWords =  3;
 
+
+    uint256 private _totalSupply;
+    string private _baseTokenURI;
+
     // Structs
     struct Reading {
         Sign sign;
@@ -46,8 +50,11 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
         // may put a spot here to make keyHash customizeable, need to do more research
     }
 
-    function requestReading(address roller) public returns(uint256 requestId) {
-        // require(s_results[roller] == 0, "Already rolled");
+
+    // Ok this function might not do shit idk I need to test and debug it
+    // I'm trying to create and emit a reading using the randomNum obtained from fulfillRandomWords
+    function requestReading() public returns(uint256 requestId) {
+        
         requestId = COORDINATOR.requestRandomWords(
             s_keyHash,
             s_subscriptionId,
@@ -57,8 +64,26 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
         );
 
         requestToSender[requestId] = msg.sender;
+        fulfillRandomWords(requestId, randomWords);
         emit ReadingRequested(requestId, msg.sender);
     }
+
+    function _incrementTotalSupply() public view returns(uint256) {
+        return _totalSupply;
+    }
+
+    function setBaseURI(string memory baseURI) public onlyOwner {
+        _baseTokenURI = baseURI;
+    }
+
+    function totalSupply() public view returns (uint256) {
+        return _totalSupply;
+    }
+
+     function _exists(uint256 requestId) internal view returns (bool) {
+        return requestToSender[requestId] != address(0);
+    }
+
 
     function fulfillRandomWords(uint256 requestId, uint256[] memory randomWords) internal override {
         uint256 tokenId = totalSupply() + 1;
@@ -86,7 +111,11 @@ contract AstrodiceBasic is ERC721, VRFConsumerBaseV2 {
     // Helper Functions
     function toString(uint256 value) internal pure returns (string memory) {
     return Strings.toString(value);
-}   
+    }
+
+    // function getReading() public view returns(Reading) {
+    //     return 
+    // }  
 
     modifier onlyOwner() {
         require(msg.sender == s_owner);
